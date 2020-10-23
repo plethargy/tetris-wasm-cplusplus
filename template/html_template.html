@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tetris</title>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+      integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="template/styles.css" />
+</head>
+<body>
+    <div class="container justify-content-center text-center" id="start"><button onclick="startGame();" class="btn btn-secondary">Start</button></div>
+    <div class="container justify-content-center text-center" id="score"></div>
+    <div class="container justify-content-center" id="gameField"></div>
+    <div class="container justify-content-center text-center mt-3" id="controls">
+        
+        <span class="ml-auto mr-1"><button onclick="moveLeft();" class="btn btn-secondary">Left (A)</button></span>
+        <span class="mx-1"><button onclick="moveDown();" class="btn btn-secondary">Down (S)</button></span>
+        <span class="mx-1"><button onclick="moveRight();" class="btn btn-secondary">Right (D)</button></span>
+        <span class="ml-1 mr-auto"><button onclick="rotate();" class="btn btn-secondary">Rotate (W)</button></span>
+        
+    </div>
+    
+        
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script
+        src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"
+        integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV"
+        crossorigin="anonymous"></script>
+
+
+    <script>
+    let keyDown = false;
+    let keyUp = false;
+    let keyLeft = false;
+    let keyRight = false;
+    document.addEventListener('keydown', (e) => {
+        if (!gameStart) return;
+        switch (e.code) {
+            case 'KeyA':
+                {
+                    if (!keyLeft)
+                        moveLeft();
+                    keyLeft = true;
+                    break;
+                }
+                
+            case 'KeyD':
+                {
+                    if (!keyRight)
+                        moveRight();
+                    keyRight = true;
+                    break;
+                }
+                
+            case 'KeyW':
+                {
+                    if (!keyUp)
+                        rotate();
+                    keyUp = true;
+                    break;
+                }
+                
+                
+            case 'KeyS':
+                {
+                    if (!keyDown)
+                        moveDown();
+
+                    keyDown = true;
+                    break
+                }
+                
+            default:
+                break;
+        }
+    });
+
+    document.addEventListener('keyup', (e) => {
+        if (!gameStart) return;
+        switch (e.code) {
+            case 'KeyA':
+                {
+                    keyLeft = false;
+                    break;
+                }
+                
+            case 'KeyD':
+                {
+                    keyRight = false;
+                    break;
+                }
+                
+            case 'KeyW':
+                {
+                    keyUp = false;
+                    break;
+                }
+                
+                
+            case 'KeyS':
+                {
+                    keyDown = false;
+                    break
+                }
+                
+            default:
+                break;
+        }
+    });
+
+    function initialise()
+    {
+        $("#controls").hide();
+    }
+    let interval = null;
+    let gameStart = false;
+    function updateBoard(board) {
+        let field = $("#gameField");
+        field.html("").addClass("mx-auto");
+
+        let index = 0;
+        for (let i = 0; i < 22; i++) {
+          let row = $("<div></div>")
+            .addClass("row")
+            .addClass("justify-content-center");
+          for (let j = 0; j < 12; j++) {
+            
+            let col = "";
+            if (board[index] == "9")
+                col = $(`<div></div>`).addClass("col").addClass("black");
+
+            else if (board[index] == "0")
+                col = $(`<div></div>`).addClass("col").addClass("grey");
+
+            else 
+                col = $(`<div></div>`).addClass("col").addClass("darkblue");
+
+            row.append(col);
+            index++;
+          }
+          field.append(row);
+        }
+
+      }
+
+        function startGame()
+        {
+            let res = Module.ccall("startGame", "string", [], []);
+            updateBoard(res);
+            interval = setInterval(moveDown, 500);
+            $("#start").hide();
+            $("#controls").show();
+            gameStart = true;
+           
+           
+        }
+
+        
+
+        function moveDown()
+        {
+            let board = Module.ccall("moveDown", "string", [], []);
+            updateBoard(board);
+            let score = Module.ccall("getScore", "number", [], []);
+            $("#score").html("").append(`<div>Score: ${score}</div>`);
+            let gameOver = Module.ccall("isGameOver", "boolean", [], []);
+            if (gameOver)
+            {
+                let gameDiv = $("<div>GAME OVER!</div>").addClass("gameover");
+                $("#gameField").html("").append(gameDiv);
+                $("#start").show();
+                $("#controls").hide();
+                clearInterval(interval);
+                gameStart = false;
+                Module.ccall("clearBoard", null, [], []);
+            }
+                
+        }
+
+        function moveLeft()
+        {
+            let board = Module.ccall("moveLeft", "string", [], []);
+            updateBoard(board);
+        }
+
+        function moveRight()
+        {
+            let board = Module.ccall("moveRight", "string", [], []);
+            updateBoard(board);
+        }
+
+        function rotate()
+        {
+            let board = Module.ccall("rotateLeft", "string", [], []);
+            updateBoard(board);
+        }
+        var Module = {
+          preRun: [],
+          postRun: [],
+          print: (function () {
+            return function (text) {
+              if (arguments.length > 1)
+                text = Array.prototype.slice.call(arguments).join(" ");
+                console.log(text);
+            };
+          })(),
+          printErr: function (text) {
+            if (arguments.length > 1)
+              text = Array.prototype.slice.call(arguments).join(" ");
+                console.error(text);
+          },
+        };
+        
+        $(document).ready(function() {
+            initialise();
+        });
+        
+     </script>
+
+    
+
+    {{{ SCRIPT }}}
+</body>
+</html>

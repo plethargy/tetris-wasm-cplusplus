@@ -1,0 +1,26 @@
+.col {
+    max-width: 2rem !important;
+    height: 2rem !important;
+    
+}
+
+
+.black {
+    background-color: black;
+}
+
+.grey {
+    background-color: lightgray;
+}
+
+.darkblue {
+    background-color: darkblue;
+    border: 1px solid white;
+}
+
+.gameover {
+    font-size: xx-large;
+    font-weight: bold;
+    font-family: 'Times New Roman', Times, serif;
+    color: darkblue;
+}
